@@ -1,0 +1,58 @@
+# Importing required labraries and tools  
+
+import torch 
+import torchvision
+from torchvision import datasets
+from torch.utils.data import DataLoader 
+from torchvision.transforms import transforms
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL
+from pathlib import Path
+
+
+DATA_PATH = Path('C:/Users/hp/.jupyter/imgdata') # path of the file contaning the image data to be amplified 
+
+# Image pre-processing : Normalization , Resizing ,HorizontalFlip etc 
+
+trans = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.Resize(64),
+    transforms.CenterCrop(64),
+    transforms.ToTensor(),
+    transforms.Normalize((1,1,1),(1,1,1))
+    ])
+
+
+dataset = datasets.ImageFolder(root= str(DATA_PATH) ,transform=trans)
+data = DataLoader(dataset= dataset,  shuffle=True ) # torch.utils.data.dataloader.DataLoader object 
+print(len(data)) # to print the total number of images in the file 
+
+
+# first we will convert all the images in the file to numpy array , and append it to the list l 
+# this list will be use further  to axcess the image as a list element 
+
+l=[]
+for i in range (len(data)):
+    dataiter = iter(data)
+    images, labels = dataiter.next()
+    images = images / 2 + 0.5
+    l.append(images[0].numpy())
+		
+
+import scipy
+from scipy import ndimage # to rotate the  image at an given angel 
+n=int(input("enter the data multipler factor ")) 
+for j in range (n): # it will n times amplify the dataset [ Total number of images = n*len(l)]
+    for i in range (1,len(l)):
+        plt.xticks([])
+        plt.yticks([])
+        img = ndimage.rotate(np.transpose(l[i],(1, 2, 0)) , j*5 )
+        plt.imshow(img)
+        plt.savefig('C:/Users/hp/.jupyter/thumbs/blank' + str(i + len(l)*j )) # the data will be saved as blank1 , blank2, blank3, ... etc
+        print(i + len(l))
+        plt.show()
+        
+    if (j*5 > 360): # if the rotation is greater then 360 the image may repeat itself 
+        break 
+
